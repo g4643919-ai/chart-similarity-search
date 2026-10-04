@@ -26,10 +26,11 @@ def run_stock_screener(market_filter: str, min_score: int,
             tickers_to_scan.append(ticker)
             
     for ticker in tickers_to_scan:
+        time.sleep(0.1) # Yahoo Finance レート制限対策のウェイト
         df, info, err = fetch_stock_data(ticker, period="2y")
         if err or df is None or len(df) < 40:
             continue
-            
+
         norm_df, features = build_all_features(df, window=40)
         shape_score_dict = calculate_shape_score(features, top_similarity_score=80.0)
         score = shape_score_dict['total_score']
@@ -88,8 +89,7 @@ def render_screener_ui():
         
     st.info("左側のサイドバーで条件を設定し、「スクリーナー実行」を押してください。")
     
-    if scan_button or st.session_state.get('auto_scan', True):
-        st.session_state['auto_scan'] = False
+    if scan_button:
         with st.spinner("対象銘柄のチャート特徴量をリアルタイムスキャン中..."):
             results = run_stock_screener(
                 market_filter=market_choice,
